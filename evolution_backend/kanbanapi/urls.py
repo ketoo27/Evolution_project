@@ -1,12 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from kanbanapi.views import UserRegistrationView, UserLoginView, UserProfileView, TaskCardViewSet, HabitListViewSet, HabitTrackerViewSet
+from kanbanapi.views import UserRegistrationView, UserLoginView, UserProfileView, TaskCardViewSet, HabitListViewSet, HabitTrackerViewSet, EventViewSet
 
 router = DefaultRouter()
 router.register(r'tasks', TaskCardViewSet, basename='taskcard') # Register TaskCardViewSet with router
 router.register(r'habits', HabitListViewSet, basename='habit') # <---- Register HabitListViewSet with router
 router.register(r'habittrackers', HabitTrackerViewSet, basename='habittracker') # <---- Register HabitTrackerViewSet
-
+router.register(r'events', EventViewSet, basename='event')
 
 
 

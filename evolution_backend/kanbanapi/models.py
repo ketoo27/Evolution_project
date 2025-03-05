@@ -85,3 +85,17 @@ class HabitTracker(models.Model):
 
     def __str__(self):
         return f"{self.habit.habit_name} - {self.tracking_date}"
+    
+
+
+class Event(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    location = models.CharField(max_length=200, blank=True, null=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    description = models.TextField(blank=True, null=True)
+    category_color = models.CharField(max_length=200, blank=True, null=True) # You can use this for color-coding events
+
+    def __str__(self):
+        return self.subject

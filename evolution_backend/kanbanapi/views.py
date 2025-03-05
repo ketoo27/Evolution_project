@@ -1,4 +1,5 @@
 # kanbanapi/views.py
+import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets # Removed serializers import, added viewsets
@@ -9,9 +10,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
-from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer # <---- Import serializers from serializers.py
-from .models import TaskCard, HabitList, HabitTracker
-import datetime
+from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer, EventSerializer # <---- Import serializers from serializers.py
+from .models import TaskCard, HabitList, HabitTracker, Event
+
 
 
 User = get_user_model()
@@ -233,3 +234,19 @@ class HabitTrackerViewSet(viewsets.ModelViewSet): # Keep using ModelViewSet for 
             return Response(serializer.data, status=status.HTTP_200_OK) # Return updated tracker entry
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # Return serializer validation errors
+        
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated] # Ensure only authenticated users can access events
+
+    def get_queryset(self):
+        """
+        This view should return a list of all events for the currently authenticated user.
+        """
+        return Event.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

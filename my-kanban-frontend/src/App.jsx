@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/Authcontext"; // Import AuthProvider  <-
 import TaskManagementPage from './TaskManagementPage'; 
 import HabitPage from './HabitPage';
 import PrivateRoute from './components/PrivateRoute';
+import Scheduler from './Scheduler';
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/*" element={<PrivateRoute><HomePage /></PrivateRoute>} /> {/* Catch-all route - Protected by context in HomePage component */}
                     <Route path="/task-management" element={<PrivateRoute><TaskManagementPage /></PrivateRoute>} />
                     <Route path="/habits" element={<PrivateRoute><HabitPage /></PrivateRoute>} /> {/* <---- Task Management Route */}
+                    <Route path="/schedule" element={<PrivateRoute><Scheduler /></PrivateRoute>} />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

@@ -29,6 +29,22 @@ body{
 body.overflow-hidden {
   overflow: hidden; /* Disable scrolling on the body */
 }
+/* Hide unwanted fields in Syncfusion Edit Dialog */
+/* CSS to hide the "All day" and "Timezone" row in Syncfusion Scheduler edit dialog */
+.e-schedule-dialog .e-all-day-time-zone-row {
+  display: none !important;
+}
+.e-recurrenceeditor .e-editor {
+
+  display: none !important;
+}
+.e-cell-popup{
+  display: none !important;
+  
+}
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

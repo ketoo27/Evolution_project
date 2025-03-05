@@ -1,7 +1,7 @@
 # kanbanapi/serializers.py
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import TaskCard, HabitList, HabitTracker
+from .models import TaskCard, HabitList, HabitTracker, Event
 
 User = get_user_model() # Get the User model
 
@@ -88,3 +88,9 @@ class HabitTrackerSerializer(serializers.ModelSerializer):
         fields = ['id', 'habit', 'habit_name', 'habit_description', 'tracking_date', 'is_completed', 'completion_percentage']
         read_only_fields = ['id', 'habit', 'tracking_date', 'completion_percentage', 'habit_name', 'habit_description'] # Keep read-only fields
         # Remove 'is_completed' from read_only_fields to make it writable for updates
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'subject', 'location', 'start_time', 'end_time', 'category_color', 'description'] # Include 'id'
