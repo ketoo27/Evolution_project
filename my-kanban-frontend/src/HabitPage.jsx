@@ -22,7 +22,7 @@ function HabitPage() {
     };
 
     return (
-        <div className="h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-200">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-200">
             <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
             <div className="flex">
                 <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={handleToggleSidebar} />

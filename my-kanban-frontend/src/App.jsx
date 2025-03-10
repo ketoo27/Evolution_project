@@ -10,6 +10,7 @@ import TaskManagementPage from './TaskManagementPage';
 import HabitPage from './HabitPage';
 import PrivateRoute from './components/PrivateRoute';
 import Scheduler from './Scheduler';
+import JournalPage from './JournalPage';
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
                     <Route path="/task-management" element={<PrivateRoute><TaskManagementPage /></PrivateRoute>} />
                     <Route path="/habits" element={<PrivateRoute><HabitPage /></PrivateRoute>} /> {/* <---- Task Management Route */}
                     <Route path="/schedule" element={<PrivateRoute><Scheduler /></PrivateRoute>} />
+                    <Route path="/journal" element={<PrivateRoute><JournalPage /></PrivateRoute>} />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

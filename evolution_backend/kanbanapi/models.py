@@ -99,3 +99,57 @@ class Event(models.Model):
 
     def __str__(self):
         return self.subject
+    
+
+class JournalEntry(models.Model):
+    journal_entry_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=200)  # Or adjust max_length as needed
+    content = models.TextField()
+    date_created = models.DateTimeField(auto_now_add=True) # Automatically set on creation
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        # Ensure only one journal entry per user per day
+        unique_together = ('user_id', 'date_created') # Corrected unique_together
+
+        def __str__(self):
+            return f"{self.title} - {self.date_created.strftime('%Y-%m-%d')}"
+        
+
+
+class Badge(models.Model):
+    """
+    Model representing badges that users can earn.
+    """
+    BADGE_TYPE_CHOICES = [
+        ('task', 'Task'),
+        ('habit', 'Habit'),
+        ('schedule', 'Schedule'),
+        ('journal', 'Journal'),
+        ('general', 'General'), # For badges that don't fit into the other categories
+    ]
+
+    title = models.CharField(max_length=100, unique=True, verbose_name='Badge Title')
+    description = models.TextField(verbose_name='Badge Description')
+    criteria = models.TextField(verbose_name='Badge Criteria', help_text='Detailed criteria for earning this badge (for admin reference).')
+    badge_type = models.CharField(max_length=20, choices=BADGE_TYPE_CHOICES, default='general', verbose_name='Badge Type')
+    icon = models.CharField(max_length=255, verbose_name='Badge Icon File Path', help_text='File path to the badge icon image (e.g., "badges/organized.png").')  # Store icon file path
+
+    def __str__(self):
+        return self.title
+    
+
+class UserBadge(models.Model):
+    """
+    Model representing badges earned by users.
+    This acts as a through model for the many-to-many relationship between CustomUser and Badge.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_badges') # Link to CustomUser
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE, related_name='user_badges') # Link to Badge
+    earned_date = models.DateTimeField(auto_now_add=True, verbose_name='Date Earned') # Timestamp when badge was earned
+
+    class Meta:
+        unique_together = ('user', 'badge') # Ensure a user can earn each badge only once
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.title}"

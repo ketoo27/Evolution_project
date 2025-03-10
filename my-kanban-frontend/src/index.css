@@ -48,3 +48,14 @@ body.overflow-hidden {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+.e-richtexteditor ul, .e-richtexteditor ol {
+  list-style-type: disc; /* For unordered lists - disc bullets */
+  padding-left: 20px;     /* Add left padding so bullets are visible */
+}
+
+.e-richtexteditor ol {
+  list-style-type: decimal; /* For ordered lists - decimal numbers */
+}

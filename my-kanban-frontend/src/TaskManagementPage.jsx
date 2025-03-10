@@ -270,7 +270,7 @@ const TaskManagementPage = () => {
 
 
     return (
-        <div className="h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
+        <div className="bg-gray-50 dark:bg-gray-900 dark:text-white">
             <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
             <div className="flex">
             <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={handleToggleSidebar} /> {/* Pass props to Sidebar */}

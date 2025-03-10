@@ -4,12 +4,19 @@ import HabitItem from './HabitItem';
 import AuthContext from '../context/Authcontext';
 
 function HabitTrackingSection() {
-    const [todayHabitTrackers, setTodayHabitTrackers] = useState([]); // State to store HabitTracker data
+    const [todayHabitTrackers, setTodayHabitTrackers] = useState([]);
     const { authToken } = useContext(AuthContext);
+    const [todayDate, setTodayDate] = useState(''); // State to store today's date
 
     useEffect(() => {
         fetchTodayHabitTrackers();
+        setTodayDate(formatDate(new Date())); // Set today's date when component mounts
     }, [authToken]);
+
+    const formatDate = (date) => {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options); // Format date to a readable string
+    };
 
     const fetchTodayHabitTrackers = async () => {
         if (!authToken) {
@@ -17,7 +24,6 @@ function HabitTrackingSection() {
             return;
         }
         try {
-            // Fetching from /api/habittrackers/ which should list today's trackers
             const response = await fetch('http://127.0.0.1:8000/api/habittrackers/', {
                 headers: {
                     'Authorization': `Token ${authToken}`,
@@ -29,27 +35,27 @@ function HabitTrackingSection() {
                 return;
             }
             const data = await response.json();
-            setTodayHabitTrackers(data); // Store HabitTracker data
+            setTodayHabitTrackers(data);
         } catch (error) {
             console.error("Could not fetch today's habit trackers:", error);
         }
     };
 
     const handleHabitUpdated = () => {
-        // Callback function to refresh habits after update in HabitItem
         fetchTodayHabitTrackers();
     };
 
-
     return (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Today's Habits</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                Today's Habits - {todayDate} {/* Display today's date here */}
+            </h2>
             <ul>
-                {todayHabitTrackers.map(habitTracker => ( // Map over todayHabitTrackers
+                {todayHabitTrackers.map(habitTracker => (
                     <HabitItem
                         key={habitTracker.id}
-                        habitTracker={habitTracker} // Pass HabitTracker object as prop
-                        onHabitUpdate={handleHabitUpdated} // Pass the callback function
+                        habitTracker={habitTracker}
+                        onHabitUpdate={handleHabitUpdated}
                     />
                 ))}
             </ul>

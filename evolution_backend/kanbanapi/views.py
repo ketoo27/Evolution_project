@@ -2,7 +2,7 @@
 import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets # Removed serializers import, added viewsets
+from rest_framework import status, viewsets, generics,permissions # Removed serializers import, added viewsets
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
 from django.db import IntegrityError
@@ -10,9 +10,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
-from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer, EventSerializer # <---- Import serializers from serializers.py
-from .models import TaskCard, HabitList, HabitTracker, Event
-
+from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer, EventSerializer, JournalEntrySerializer, BadgeSerializer, UserBadgeSerializer # <---- Import serializers from serializers.py
+from .models import TaskCard, HabitList, HabitTracker, Event, JournalEntry, Badge, UserBadge
+from django.utils import timezone
+from .badges_logic import check_and_award_badges
 
 
 User = get_user_model()
@@ -104,6 +105,8 @@ class UserLoginView(APIView):
                     )
 
             # --- Habit Tracking Logic End ---
+
+            check_and_award_badges(user) # Call the function to check and award badges for the logged-in user
 
             return Response(
                 {'message': 'Login successful!', 'token': token.key},
@@ -250,3 +253,72 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+
+class TodayJournalEntryView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JournalEntrySerializer
+
+    def get(self, request):
+        today_date = timezone.now().date()
+        try:
+            journal_entry = JournalEntry.objects.get(user_id=request.user, date_created__date=today_date)
+            serializer = self.get_serializer(journal_entry)
+            return Response(serializer.data)
+        except JournalEntry.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'No journal entry found for today.'})
+
+    def post(self, request):
+        today_date = timezone.now().date()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                # Check if an entry exists for today
+                journal_entry = JournalEntry.objects.get(user_id=request.user, date_created__date=today_date)
+                # Update existing entry
+                serializer.update(journal_entry, serializer.validated_data) # Use serializer.update to update
+                return Response(self.get_serializer(journal_entry).data, status=status.HTTP_200_OK) # Return updated entry
+            except JournalEntry.DoesNotExist:
+                # Create a new entry
+                serializer.save(user_id=request.user) # Pass user to serializer's save method
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+# NEW VIEW FOR LISTING ALL JOURNAL ENTRIES
+class JournalEntryListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JournalEntrySerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all journal entries for the currently authenticated user.
+        """
+        return JournalEntry.objects.filter(user_id=self.request.user).order_by('-date_created') # Order by date, newest first
+    
+
+
+# NEW VIEW TO LIST ALL BADGES
+class BadgeListView(generics.ListAPIView):
+    """
+    API view to list all available badges.
+    """
+    queryset = Badge.objects.all() # Fetch all Badge objects
+    serializer_class = BadgeSerializer
+
+
+class UserBadgeListView(generics.ListAPIView):
+    """
+    API endpoint to retrieve the list of badges earned by the logged-in user.
+    """
+    serializer_class = UserBadgeSerializer
+    permission_classes = [permissions.IsAuthenticated] # Only logged-in users can access
+
+    def get_queryset(self):
+        """
+        Override get_queryset to return UserBadges for the current user.
+        """
+        user = self.request.user
+        return UserBadge.objects.filter(user=user).select_related('badge') # Optimize query and prefetch related Badge data

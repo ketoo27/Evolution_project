@@ -1,7 +1,7 @@
 # kanbanapi/serializers.py
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import TaskCard, HabitList, HabitTracker, Event
+from .models import TaskCard, HabitList, HabitTracker, Event, JournalEntry, Badge, UserBadge
 
 User = get_user_model() # Get the User model
 
@@ -94,3 +94,32 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'subject', 'location', 'start_time', 'end_time', 'category_color', 'description'] # Include 'id'
+
+
+class JournalEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JournalEntry
+        fields = ['journal_entry_id', 'title', 'content', 'date_created'] # Include date_created for retrieval
+        read_only_fields = ['journal_entry_id', 'date_created'] # These fields should not be updated directly during create/update
+
+
+class BadgeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Badge model.
+    """
+    class Meta:
+        model = Badge
+        fields = ['id', 'title', 'description', 'criteria', 'badge_type', 'icon'] # Include all fields from the Badge model
+
+
+
+# NEW SERIALIZER FOR UserBadge MODEL
+class UserBadgeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserBadge model.
+    """
+    badge = BadgeSerializer(read_only=True) # Serialize related Badge object
+
+    class Meta:
+        model = UserBadge
+        fields = ['id', 'badge', 'earned_date'] # Fields for UserBadge
