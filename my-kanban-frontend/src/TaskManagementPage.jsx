@@ -35,6 +35,12 @@ const TaskManagementPage = () => {
     const [newTaskPriority, setNewTaskPriority] = useState('low');
     const [newTaskDueDate, setNewTaskDueDate] = useState('');
 
+    // --- New state variables for event relation ---
+    const [isEventTask, setIsEventTask] = useState(false);
+    const [relatedEvent, setRelatedEvent] = useState(null);
+    const [eventsList, setEventsList] = useState();
+    // --- End of new state variables ---
+
     // Updated choices to match user's provided options
     const taskTypes = [
         'personal',
@@ -81,7 +87,10 @@ const TaskManagementPage = () => {
 
     useEffect(() => {
         fetchTasks();
+        fetchEvents();
     }, []);
+
+
 
     const fetchTasks = async () => {
         try {
@@ -114,6 +123,31 @@ const TaskManagementPage = () => {
             console.error("Could not fetch Kanban data:", error);
         }
     };
+
+     // --- Function to fetch events ---
+     const fetchEvents = async () => {
+        try {
+            if (!authToken) {
+                console.error("No auth token found for fetching events.");
+                return;
+            }
+            const response = await fetch('http://127.0.0.1:8000/api/events/', {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                console.error(`HTTP error fetching events! status: ${response.status}`);
+                return;
+            }
+            const data = await response.json();
+            setEventsList(data);
+        } catch (error) {
+            console.error("Could not fetch events:", error);
+        }
+    };
+    // --- End of fetchEvents function ---
 
     const handleCardDragStop = async (args) => {
         const taskId = args.draggedCardData.Id;
@@ -250,11 +284,12 @@ const TaskManagementPage = () => {
     const clearTaskInputFields = () => {
         setNewTaskTitle('');
         setNewTaskSummary('');
-        setNewTaskType('personal'); // Default to 'personal'
+        setNewTaskType('personal');
         setNewTaskPriority('low');
         setNewTaskDueDate('');
+        setIsEventTask(false); // Reset isEventTask
+        setRelatedEvent(null); // Reset relatedEvent
     };
-
 
     const handleSaveTask = () => {
         const taskData = {
@@ -264,6 +299,9 @@ const TaskManagementPage = () => {
             task_type: newTaskType,
             priority: newTaskPriority,
             due_date: newTaskDueDate,
+            is_habit: false, // Assuming this is set elsewhere or defaults to false
+            is_event: isEventTask, // Include the isEventTask value
+            related_event: isEventTask ? (relatedEvent === null ? null : parseInt(relatedEvent)) : null, // Include relatedEvent if isEventTask is true
         };
         createTask(taskData);
     };
@@ -322,6 +360,38 @@ const TaskManagementPage = () => {
                                                     {taskTypes.map(type => <option key={type} value={type}>{type}</option>)}
                                                 </select>
                                             </div>
+                                            <div>
+                                                    <label htmlFor="isEventTask" className="inline-flex items-center text-base font-medium text-white">
+                                                        <input
+                                                            id="isEventTask"
+                                                            type="checkbox"
+                                                            className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                                                            value={isEventTask}
+                                                            onChange={(e) => setIsEventTask(e.target.checked)}
+                                                        />
+                                                        <span className="ms-2">Is Related to Event</span>
+                                                    </label>
+                                                </div>
+
+                                                {isEventTask && (
+                                                    <div>
+                                                        <label htmlFor="relatedEvent" className="block text-base font-medium text-white">Related Event</label>
+                                                        <select
+                                                            id="relatedEvent"
+                                                            name="relatedEvent"
+                                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                            value={relatedEvent || ''} // Set value to null or empty string
+                                                            onChange={(e) => setRelatedEvent(e.target.value === '' ? null : parseInt(e.target.value))} // Handle null selection
+                                                        >
+                                                            <option value="">None</option>
+                                                            {eventsList.map(event => (
+                                                                <option key={event.id} value={event.id}>
+                                                                    {event.subject}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
                                             <div>
                                                 <label htmlFor="taskPriority" className="block text-base font-medium text-white">Priority</label>
                                                 <select id="taskPriority" name="taskPriority" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value)}>

@@ -58,7 +58,8 @@ class TaskCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskCard
         fields = [
-            'id', 'title', 'summary', 'status', 'task_type', 'priority', 'due_date', 'user', 'user_username' # Added user_username to fields
+            'id', 'title', 'summary', 'status', 'task_type', 'priority', 'due_date',
+            'user', 'user_username', 'is_habit', 'is_event', 'related_event' # Added new fields
         ]
         read_only_fields = ['user', 'user_username'] # user and user_username are read-only in API output
 

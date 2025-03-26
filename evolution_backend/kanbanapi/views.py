@@ -104,6 +104,26 @@ class UserLoginView(APIView):
                         defaults={'is_completed': False, 'completion_percentage': 0.00} # Set defaults for new entries
                     )
 
+                # 3. Create corresponding TaskCard objects for today's habits (if they don't exist)
+                for habit in user_habits:
+                    # Check if a TaskCard for this habit already exists for today
+                    existing_task = TaskCard.objects.filter(
+                        user=user,
+                        is_habit=True,
+                        title=habit.habit_name,
+                        due_date=today_date  # Assuming daily habits are due on the day they are tracked
+                    ).first()
+
+                    if not existing_task:
+                        TaskCard.objects.create(
+                            user=user,
+                            is_habit=True,
+                            title=habit.habit_name,
+                            summary=habit.habit_description if habit.habit_description else "", # Optional description
+                            due_date=today_date,
+                            status='to_do' # You can set a default status for habit-tasks
+                        )
+
             # --- Habit Tracking Logic End ---
 
             check_and_award_badges(user) # Call the function to check and award badges for the logged-in user
@@ -171,6 +191,37 @@ class TaskCardViewSet(viewsets.ModelViewSet):
         """
         serializer.save(user=self.request.user)
 
+    def update(self, request, pk=None):
+        """
+        Override the update method to handle status changes for habit tasks.
+        """
+        try:
+            task_card = TaskCard.objects.get(pk=pk, user=request.user)
+        except TaskCard.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(task_card, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+
+            # --- Habit Tracker Sync (Task to Habit) ---
+            if task_card.is_habit and serializer.validated_data.get('status') == 'done':
+                today_date = datetime.date.today()
+                try:
+                    habit_tracker = HabitTracker.objects.get(
+                        habit__user=request.user,
+                        habit__habit_name=task_card.title,
+                        tracking_date=today_date
+                    )
+                    habit_tracker.is_completed = True
+                    habit_tracker.save()
+                except HabitTracker.DoesNotExist:
+                    # Handle the case where a HabitTracker entry might not exist for today
+                    pass  # Or you could log this as an issue if it's unexpected
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class HabitListViewSet(viewsets.ModelViewSet):
     """
@@ -234,10 +285,26 @@ class HabitTrackerViewSet(viewsets.ModelViewSet): # Keep using ModelViewSet for 
         serializer = self.get_serializer(tracker_entry, data=request.data, partial=True) # Use partial=True to allow partial updates
         if serializer.is_valid():
             serializer.save() # Save the updated is_completed status
+
+            # --- TaskCard Sync (Habit to Task) ---
+            if serializer.validated_data.get('is_completed') is True:
+                today_date = datetime.date.today()
+                try:
+                    task_card = TaskCard.objects.get(
+                        user=request.user,
+                        is_habit=True,
+                        title=tracker_entry.habit.habit_name,
+                        due_date=today_date
+                    )
+                    task_card.status = 'done'
+                    task_card.save()
+                except TaskCard.DoesNotExist:
+                    # Handle the case where a TaskCard might not exist
+                    pass # Or log this if it's unexpected
+
             return Response(serializer.data, status=status.HTTP_200_OK) # Return updated tracker entry
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # Return serializer validation errors
-        
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # Return serializer validation errors     
 
 
 class EventViewSet(viewsets.ModelViewSet):

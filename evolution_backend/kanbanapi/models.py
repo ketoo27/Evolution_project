@@ -50,6 +50,12 @@ class TaskCard(models.Model):
     due_date = models.DateField(blank=True, null=True, verbose_name="Due Date", help_text="Optional date by which the task should be completed.")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='tasks')
 
+
+    # New fields to connect with Habit and Event
+    is_habit = models.BooleanField(default=False, verbose_name="Is Habit", help_text="Indicates if this task is a daily habit.")
+    is_event = models.BooleanField(default=False, verbose_name="Is Related to Event", help_text="Indicates if this task is related to a scheduled event.")
+    related_event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True, related_name='related_tasks', verbose_name="Related Event", help_text="The event this task is related to (optional).")
+
     def __str__(self):
         return self.title
 
