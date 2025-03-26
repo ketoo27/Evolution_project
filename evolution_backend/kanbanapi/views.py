@@ -76,6 +76,18 @@ class UserLoginView(APIView):
 
             # --- Habit Tracking Logic Start ---
             today_date = datetime.date.today()
+            yesterday_date = today_date - datetime.timedelta(days=1)
+
+            # 1. Delete previous day's habit task cards
+            previous_day_habit_tasks = TaskCard.objects.filter(
+                user=user,
+                is_habit=True,
+                due_date=yesterday_date
+            )
+            deleted_count, _ = previous_day_habit_tasks.delete()
+            if deleted_count > 0:
+                print(f"Deleted {deleted_count} habit task(s) from {yesterday_date} for user {user.username}.")
+
             last_tracker_entry = HabitTracker.objects.filter(habit__user=user).order_by('-tracking_date').first()
 
             if last_tracker_entry:
@@ -84,7 +96,7 @@ class UserLoginView(APIView):
                 last_tracking_date = None # No habit tracking data yet
 
             if last_tracking_date != today_date: # It's a new day!
-                # 1. Calculate and Save Previous Day's Completion Percentage (if there was a previous day)
+                # 2. Calculate and Save Previous Day's Completion Percentage (if there was a previous day)
                 if last_tracking_date:
                     previous_day_trackers = HabitTracker.objects.filter(habit__user=user, tracking_date=last_tracking_date)
                     total_habits_previous_day = previous_day_trackers.count()
@@ -95,34 +107,40 @@ class UserLoginView(APIView):
                             tracker.completion_percentage = previous_day_completion_percentage
                             tracker.save()
 
-                # 2. Create HabitTracker entries for today (using get_or_create to avoid duplicates)
+                # 3. Create HabitTracker entries for today (using get_or_create to avoid duplicates)
                 user_habits = HabitList.objects.filter(user=user)
                 for habit in user_habits:
-                    HabitTracker.objects.get_or_create(
+                    habit_tracker_entry, created_tracker = HabitTracker.objects.get_or_create(
                         habit=habit,
                         tracking_date=today_date,
                         defaults={'is_completed': False, 'completion_percentage': 0.00} # Set defaults for new entries
                     )
 
-                # 3. Create corresponding TaskCard objects for today's habits (if they don't exist)
-                for habit in user_habits:
-                    # Check if a TaskCard for this habit already exists for today
+                    # 4. Create corresponding TaskCard objects for today's habits (if they don't exist) and link them
                     existing_task = TaskCard.objects.filter(
                         user=user,
                         is_habit=True,
                         title=habit.habit_name,
-                        due_date=today_date  # Assuming daily habits are due on the day they are tracked
+                        due_date=today_date,
+                        habit_tracker=habit_tracker_entry # Also check for the linked habit tracker
                     ).first()
 
                     if not existing_task:
-                        TaskCard.objects.create(
+                        task_card = TaskCard.objects.create(
                             user=user,
                             is_habit=True,
                             title=habit.habit_name,
                             summary=habit.habit_description if habit.habit_description else "", # Optional description
                             due_date=today_date,
-                            status='to_do' # You can set a default status for habit-tasks
+                            status='to_do', # You can set a default status for habit-tasks
+                            habit_tracker=habit_tracker_entry # Link the TaskCard to the HabitTracker entry
                         )
+                        print(f"Created task card '{task_card.title}' and linked to HabitTracker entry.")
+                    elif existing_task and existing_task.habit_tracker is None:
+                        # If task exists but is not linked, link it (this might happen from previous implementations)
+                        existing_task.habit_tracker = habit_tracker_entry
+                        existing_task.save()
+                        print(f"Linked existing task card '{existing_task.title}' to HabitTracker entry.")
 
             # --- Habit Tracking Logic End ---
 
@@ -193,7 +211,7 @@ class TaskCardViewSet(viewsets.ModelViewSet):
 
     def update(self, request, pk=None):
         """
-        Override the update method to handle status changes for habit tasks.
+        Override the update method to handle status changes for habit tasks and sync with HabitTracker.
         """
         try:
             task_card = TaskCard.objects.get(pk=pk, user=request.user)
@@ -205,23 +223,21 @@ class TaskCardViewSet(viewsets.ModelViewSet):
             serializer.save()
 
             # --- Habit Tracker Sync (Task to Habit) ---
-            if task_card.is_habit and serializer.validated_data.get('status') == 'done':
-                today_date = datetime.date.today()
-                try:
-                    habit_tracker = HabitTracker.objects.get(
-                        habit__user=request.user,
-                        habit__habit_name=task_card.title,
-                        tracking_date=today_date
-                    )
+            if task_card.is_habit and task_card.habit_tracker: # Check if it's a habit task and linked
+                habit_tracker = task_card.habit_tracker
+                if serializer.validated_data.get('status') == 'done':
                     habit_tracker.is_completed = True
                     habit_tracker.save()
-                except HabitTracker.DoesNotExist:
-                    # Handle the case where a HabitTracker entry might not exist for today
-                    pass  # Or you could log this as an issue if it's unexpected
+                    print(f"Habit task card '{task_card.title}' marked as done. Habit '{habit_tracker.habit.habit_name}' marked as completed.")
+                elif serializer.validated_data.get('status') == 'to_do':
+                    habit_tracker.is_completed = False
+                    habit_tracker.save()
+                    print(f"Habit task card '{task_card.title}' marked as to_do. Habit '{habit_tracker.habit.habit_name}' marked as not completed.")
 
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+        
 
 class HabitListViewSet(viewsets.ModelViewSet):
     """
@@ -275,7 +291,7 @@ class HabitTrackerViewSet(viewsets.ModelViewSet): # Keep using ModelViewSet for 
 
     def update(self, request, pk=None): # Add the 'update' action to handle PUT requests
         """
-        Update the is_completed status of a HabitTracker entry.
+        Update the is_completed status of a HabitTracker entry and sync with TaskCard.
         """
         try:
             tracker_entry = HabitTracker.objects.get(pk=pk, habit__user=request.user) # Get tracker entry, verify user ownership
@@ -287,24 +303,23 @@ class HabitTrackerViewSet(viewsets.ModelViewSet): # Keep using ModelViewSet for 
             serializer.save() # Save the updated is_completed status
 
             # --- TaskCard Sync (Habit to Task) ---
-            if serializer.validated_data.get('is_completed') is True:
-                today_date = datetime.date.today()
-                try:
-                    task_card = TaskCard.objects.get(
-                        user=request.user,
-                        is_habit=True,
-                        title=tracker_entry.habit.habit_name,
-                        due_date=today_date
-                    )
+            task_card = tracker_entry.task_card.first() # Access the linked TaskCard
+
+            if task_card:
+                if serializer.validated_data.get('is_completed') is True:
                     task_card.status = 'done'
                     task_card.save()
-                except TaskCard.DoesNotExist:
-                    # Handle the case where a TaskCard might not exist
-                    pass # Or log this if it's unexpected
+                    print(f"Habit '{tracker_entry.habit.habit_name}' completed. Task card '{task_card.title}' marked as done.")
+                elif serializer.validated_data.get('is_completed') is False:
+                    task_card.status = 'to_do'
+                    task_card.save()
+                    print(f"Habit '{tracker_entry.habit.habit_name}' marked as not completed. Task card '{task_card.title}' set to to_do.")
 
             return Response(serializer.data, status=status.HTTP_200_OK) # Return updated tracker entry
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # Return serializer validation errors     
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # Return serializer validation errors
+        
+
 
 
 class EventViewSet(viewsets.ModelViewSet):

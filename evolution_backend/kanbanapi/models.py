@@ -56,6 +56,9 @@ class TaskCard(models.Model):
     is_event = models.BooleanField(default=False, verbose_name="Is Related to Event", help_text="Indicates if this task is related to a scheduled event.")
     related_event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True, related_name='related_tasks', verbose_name="Related Event", help_text="The event this task is related to (optional).")
 
+    # New field to link to HabitTracker
+    habit_tracker = models.ForeignKey('HabitTracker', on_delete=models.SET_NULL, null=True, blank=True, related_name='task_card', verbose_name="Related Habit Tracker Entry", help_text="The Habit Tracker entry associated with this task (for habit tasks).")
+
     def __str__(self):
         return self.title
 
