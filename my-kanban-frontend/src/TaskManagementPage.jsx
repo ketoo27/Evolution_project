@@ -1,4 +1,3 @@
-// src/TaskManagementPage.js (or src/TaskManagementPage.jsx)
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { KanbanComponent, ColumnsDirective, ColumnDirective } from '@syncfusion/ej2-react-kanban';
 import Navbar from './components/Navbar';
@@ -25,7 +24,7 @@ const Header = ({ category, title, onAddTaskClick }) => (
 
 const TaskManagementPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+
     const [kanbanData, setKanbanData] = useState([]);
     const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -36,7 +35,6 @@ const TaskManagementPage = () => {
     const [newTaskDueDate, setNewTaskDueDate] = useState('');
 
     // --- New state variables for event relation ---
-    const [isEventTask, setIsEventTask] = useState(false);
     const [relatedEvent, setRelatedEvent] = useState(null);
     const [eventsList, setEventsList] = useState();
     // --- End of new state variables ---
@@ -57,14 +55,14 @@ const TaskManagementPage = () => {
     ];
     const statusChoices = [ // Keeping these for reference, but Kanban columns are 'to_do', 'in_progress', 'done'
         ('to_do', 'To Do'),
-        ('processing', 'Processing'),
+        ('processing', 'Processing'), // Updated to 'Processing'
         ('done', 'Done'),
     ];
 
 
     const kanbanGrid = [
         { headerText: 'To Do', keyField: 'to_do', allowToggleDragAndDrop: true },
-        { headerText: 'Processing', keyField: 'processing', allowToggleDragAndDrop: true }, // Updated to 'Processing'
+        { headerText: 'Processing', keyField: 'processing', allowToggleDragAndDrop: true },
         { headerText: 'Done', keyField: 'done', allowToggleDragAndDrop: true },
     ];
 
@@ -124,8 +122,8 @@ const TaskManagementPage = () => {
         }
     };
 
-     // --- Function to fetch events ---
-     const fetchEvents = async () => {
+    // --- Function to fetch events ---
+    const fetchEvents = async () => {
         try {
             if (!authToken) {
                 console.error("No auth token found for fetching events.");
@@ -287,7 +285,6 @@ const TaskManagementPage = () => {
         setNewTaskType('personal');
         setNewTaskPriority('low');
         setNewTaskDueDate('');
-        setIsEventTask(false); // Reset isEventTask
         setRelatedEvent(null); // Reset relatedEvent
     };
 
@@ -300,8 +297,8 @@ const TaskManagementPage = () => {
             priority: newTaskPriority,
             due_date: newTaskDueDate,
             is_habit: false, // Assuming this is set elsewhere or defaults to false
-            is_event: isEventTask, // Include the isEventTask value
-            related_event: isEventTask ? (relatedEvent === null ? null : parseInt(relatedEvent)) : null, // Include relatedEvent if isEventTask is true
+            is_event: true, // Set is_event to true for all new tasks
+            related_event: relatedEvent === null ? null : parseInt(relatedEvent), // Include relatedEvent
         };
         createTask(taskData);
     };
@@ -311,8 +308,8 @@ const TaskManagementPage = () => {
         <div className="bg-gray-50 dark:bg-gray-900 dark:text-white">
             <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
             <div className="flex">
-            <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={handleToggleSidebar} /> {/* Pass props to Sidebar */}
-            <main className="flex-1 p-8 mt-16" style={{overflow: isSidebarOpen ? 'hidden' : 'auto'}}> {/* Conditionally disable main content scroll */}
+                <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={handleToggleSidebar} /> {/* Pass props to Sidebar */}
+                <main className="flex-1 p-8 mt-16" style={{overflow: isSidebarOpen ? 'hidden' : 'auto'}}> {/* Conditionally disable main content scroll */}
                     <Header category="Page" title="Task Management Kanban" onAddTaskClick={handleAddTaskClick} />
                     <div className="bg-white dark:bg-secondary-dark-bg rounded-3xl p-4 md:p-8">
                         <KanbanComponent
@@ -334,6 +331,7 @@ const TaskManagementPage = () => {
                             </ColumnsDirective>
                         </KanbanComponent>
                     </div>
+
 
                             {isAddTaskModalOpen && (
                         <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -360,38 +358,25 @@ const TaskManagementPage = () => {
                                                     {taskTypes.map(type => <option key={type} value={type}>{type}</option>)}
                                                 </select>
                                             </div>
-                                            <div>
-                                                    <label htmlFor="isEventTask" className="inline-flex items-center text-base font-medium text-white">
-                                                        <input
-                                                            id="isEventTask"
-                                                            type="checkbox"
-                                                            className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
-                                                            value={isEventTask}
-                                                            onChange={(e) => setIsEventTask(e.target.checked)}
-                                                        />
-                                                        <span className="ms-2">Is Related to Event</span>
-                                                    </label>
-                                                </div>
 
-                                                {isEventTask && (
-                                                    <div>
-                                                        <label htmlFor="relatedEvent" className="block text-base font-medium text-white">Related Event</label>
-                                                        <select
-                                                            id="relatedEvent"
-                                                            name="relatedEvent"
-                                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                            value={relatedEvent || ''} // Set value to null or empty string
-                                                            onChange={(e) => setRelatedEvent(e.target.value === '' ? null : parseInt(e.target.value))} // Handle null selection
-                                                        >
-                                                            <option value="">None</option>
-                                                            {eventsList.map(event => (
-                                                                <option key={event.id} value={event.id}>
-                                                                    {event.subject}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                )}
+                                            <div>
+                                                <label htmlFor="relatedEvent" className="block text-base font-medium text-white">Related Event</label>
+                                                <select
+                                                    id="relatedEvent"
+                                                    name="relatedEvent"
+                                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                    value={relatedEvent || (eventsList && eventsList.length > 0 ? eventsList[0].id : '')} // Set default to the first event if available
+                                                    onChange={(e) => setRelatedEvent(e.target.value ? parseInt(e.target.value) : null)} // Handle selection
+                                                >
+                                                    {eventsList && eventsList.map(event => (
+                                                        <option key={event.id} value={event.id}>
+                                                            {event.subject}
+                                                        </option>
+                                                    ))}
+                                                    {!eventsList || eventsList.length === 0 ? <option disabled>No events available</option> : null}
+                                                </select>
+                                            </div>
+
                                             <div>
                                                 <label htmlFor="taskPriority" className="block text-base font-medium text-white">Priority</label>
                                                 <select id="taskPriority" name="taskPriority" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value)}>
@@ -414,7 +399,7 @@ const TaskManagementPage = () => {
                                                         placeholder="Select date"
                                                         value={newTaskDueDate}
                                                         onChange={(e) => setNewTaskDueDate(e.target.value)}
-                                                        />
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

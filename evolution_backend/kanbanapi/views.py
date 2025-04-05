@@ -82,7 +82,7 @@ class UserLoginView(APIView):
             previous_day_habit_tasks = TaskCard.objects.filter(
                 user=user,
                 is_habit=True,
-                due_date=yesterday_date
+                due_date__lt=today_date
             )
             deleted_count, _ = previous_day_habit_tasks.delete()
             if deleted_count > 0:
