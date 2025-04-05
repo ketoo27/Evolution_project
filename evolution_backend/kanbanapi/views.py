@@ -15,7 +15,7 @@ from .models import TaskCard, HabitList, HabitTracker, Event, JournalEntry, Badg
 from django.utils import timezone
 from .badges_logic import check_and_award_badges
 from django.db.models import Count, Case, When, DateField
-from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
 
 
 
@@ -409,47 +409,7 @@ class UserBadgeListView(generics.ListAPIView):
         return UserBadge.objects.filter(user=user).select_related('badge') # Optimize query and prefetch related Badge data
     
 
-# --- Visualization API Endpoints ---
-class TaskCompletionRateView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        today = timezone.now().date()
-
-        # Calculate the start of the current week (Monday)
-        start_of_week = today - datetime.timedelta(days=today.weekday())
-
-        # Calculate the end of the current week (Sunday)
-        end_of_week = start_of_week + datetime.timedelta(days=6)
-
-        task_data = TaskCard.objects.filter(
-            user=user,
-            due_date__gte=start_of_week,
-            due_date__lte=end_of_week
-        ).annotate(
-            task_date=TruncDate('due_date', output_field=DateField())
-        ).values('task_date').annotate(
-            total_tasks=Count('id'),
-            completed_tasks=Count(
-                Case(
-                    When(status='done', then=1)
-                )
-            )
-        ).order_by('task_date')
-
-        # Format the data for the frontend
-        formatted_data = [
-            {
-                'dueDate': item['task_date'].isoformat(),
-                'total': item['total_tasks'],
-                'completed': item['completed_tasks'],
-            }
-            for item in task_data
-        ]
-        return Response(formatted_data)
-    
 
 class HabitCompletionWeeklyView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -488,3 +448,97 @@ class HabitStreakView(APIView):
             else:
                 break  # Streak broken
         return Response({'habitStreak': streak})
+    
+
+class TaskStatusCountsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        status_counts = TaskCard.objects.filter(user=user).values('status').annotate(count=Count('id'))
+        formatted_data = [{'name': item['status'], 'value': item['count']} for item in status_counts]
+        return Response(formatted_data)
+    
+class TaskPriorityCountsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        priority_counts = TaskCard.objects.filter(user=user).values('priority').annotate(count=Count('id'))
+        formatted_data = [{'name': item['priority'], 'value': item['count']} for item in priority_counts]
+        return Response(formatted_data)
+    
+class TaskTypeCountsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        task_type_counts = TaskCard.objects.filter(user=user).values('task_type').annotate(count=Count('id'))
+        formatted_data = [{'name': item['task_type'], 'value': item['count']} for item in task_type_counts]
+        return Response(formatted_data)
+    
+class TaskCompletionRateView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        # Calculate the start and end of the current week (Monday to Sunday)
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+        end_of_week = start_of_week + datetime.timedelta(days=6)
+
+        # Generate a list of all dates in the current week
+        all_dates = []
+        current_date = start_of_week
+        while current_date <= end_of_week:
+            all_dates.append(current_date)
+            current_date += datetime.timedelta(days=1)
+
+        # Query task completion status for each day of the current week
+        weekly_completion_data = []
+        for date in all_dates:
+            done_count = TaskCard.objects.filter(
+                user=user,
+                due_date=date,
+                status='done'
+            ).count()
+            todo_count = TaskCard.objects.filter(
+                user=user,
+                due_date=date,
+                status__in=['pending', 'in_progress', 'backlog'] # Adjust status values as needed
+            ).count()
+            weekly_completion_data.append({
+                'dueDate': date.isoformat(),
+                'Done': done_count,
+                'ToDo': todo_count,
+            })
+
+        return Response(weekly_completion_data)
+    
+
+class UpcomingEventsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        now = timezone.now()
+        upcoming_events = Event.objects.filter(
+            user=user,
+            start_time__gte=now  # Only show events from now onwards (including time)
+        ).order_by('start_time')
+        data = [
+            {
+                'title': event.subject,
+                'date': event.start_time.date().isoformat(),
+                'time': event.start_time.strftime('%H:%M'),
+                'description': event.description,
+            }
+            for event in upcoming_events
+        ]
+        return Response(data)
