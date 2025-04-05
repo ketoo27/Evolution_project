@@ -14,6 +14,9 @@ from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitLi
 from .models import TaskCard, HabitList, HabitTracker, Event, JournalEntry, Badge, UserBadge
 from django.utils import timezone
 from .badges_logic import check_and_award_badges
+from django.db.models import Count, Case, When, DateField
+from django.db.models.functions import TruncDate
+
 
 
 User = get_user_model()
@@ -404,3 +407,84 @@ class UserBadgeListView(generics.ListAPIView):
         """
         user = self.request.user
         return UserBadge.objects.filter(user=user).select_related('badge') # Optimize query and prefetch related Badge data
+    
+
+# --- Visualization API Endpoints ---
+class TaskCompletionRateView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        # Calculate the start of the current week (Monday)
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+
+        # Calculate the end of the current week (Sunday)
+        end_of_week = start_of_week + datetime.timedelta(days=6)
+
+        task_data = TaskCard.objects.filter(
+            user=user,
+            due_date__gte=start_of_week,
+            due_date__lte=end_of_week
+        ).annotate(
+            task_date=TruncDate('due_date', output_field=DateField())
+        ).values('task_date').annotate(
+            total_tasks=Count('id'),
+            completed_tasks=Count(
+                Case(
+                    When(status='done', then=1)
+                )
+            )
+        ).order_by('task_date')
+
+        # Format the data for the frontend
+        formatted_data = [
+            {
+                'dueDate': item['task_date'].isoformat(),
+                'total': item['total_tasks'],
+                'completed': item['completed_tasks'],
+            }
+            for item in task_data
+        ]
+        return Response(formatted_data)
+    
+
+class HabitCompletionWeeklyView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+        end_of_week = start_of_week + datetime.timedelta(days=6)
+        weekly_data = []
+        for i in range(7):
+            current_date = start_of_week + datetime.timedelta(days=i)
+            completed_habits_count = HabitTracker.objects.filter(
+                habit__user=user,
+                tracking_date=current_date,
+                is_completed=True
+            ).count()
+            weekly_data.append({
+                'day': current_date.strftime('%a'),  # Abbreviated day name
+                'completedHabits': completed_habits_count,
+            })
+        return Response(weekly_data)
+
+class HabitStreakView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        habit_trackers = HabitTracker.objects.filter(habit__user=user).order_by('-tracking_date')
+        streak = 0
+        for tracker in habit_trackers:
+            if tracker.completion_percentage > 80:
+                streak += 1
+            else:
+                break  # Streak broken
+        return Response({'habitStreak': streak})
