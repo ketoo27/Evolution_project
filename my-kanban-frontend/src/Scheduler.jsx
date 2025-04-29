@@ -136,14 +136,29 @@ const Scheduler = () => {
     
 
     const handleCellClick = (args) => {
-        console.log("cellClick event triggered!", args); // ADD THIS LINE
+        console.log("cellClick event triggered!", args);
         setIsAddEventModalOpen(true);
-    
+
         if (args.startTime) {
-            setNewEventStartTime(args.startTime.toISOString().slice(0, 16));
+            // Format the startTime to the format expected by datetime-local input (YYYY-MM-DDTHH:mm)
+            const year = args.startTime.getFullYear();
+            const month = String(args.startTime.getMonth() + 1).padStart(2, '0');
+            const day = String(args.startTime.getDate()).padStart(2, '0');
+            const hours = String(args.startTime.getHours()).padStart(2, '0');
+            const minutes = String(args.startTime.getMinutes()).padStart(2, '0');
+            const startTimeLocalFormat = `${year}-${month}-${day}T${hours}:${minutes}`;
+            setNewEventStartTime(startTimeLocalFormat);
+
+            // Calculate and format the default end time (one hour later) in local format
             const defaultEndTime = new Date(args.startTime);
             defaultEndTime.setHours(defaultEndTime.getHours() + 1);
-            setNewEventEndTime(defaultEndTime.toISOString().slice(0, 16));
+            const endYear = defaultEndTime.getFullYear();
+            const endMonth = String(defaultEndTime.getMonth() + 1).padStart(2, '0');
+            const endDay = String(defaultEndTime.getDate()).padStart(2, '0');
+            const endHours = String(defaultEndTime.getHours()).padStart(2, '0');
+            const endMinutes = String(defaultEndTime.getMinutes()).padStart(2, '0');
+            const endTimeLocalFormat = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}`;
+            setNewEventEndTime(endTimeLocalFormat);
         }
     };
 

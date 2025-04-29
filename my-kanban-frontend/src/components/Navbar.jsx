@@ -118,11 +118,11 @@ function Navbar({ toggleSidebar, isSidebarOpen }) {
                 >
                     <AiOutlineMenu className="dark:text-white" />  {/* White menu icon in dark mode */}
                 </button>
-                <span className="font-bold text-xl text-indigo-700 mt-4 ml-4 dark:text-white">Evolution</span> {/* White brand text in dark mode */}
+                <span className="font-bold text-xl text-indigo-700 mt-4 ml-4 dark:text-white">EVOLUTION</span> {/* White brand text in dark mode */}
 
                 <div className="flex items-center space-x-4">
-                    <NavButton color="gray" icon={<FiShoppingCart className="dark:text-white" />} title="Cart" customFunc={() => handleClick('cart')} /> {/* White icons in dark mode */}
-                    <NavButton color="gray" dotColor="#03C9D7" icon={<BsChatLeft className="dark:text-white" />} title="Chat" customFunc={() => handleClick('chat')} /> {/* White icons in dark mode */}
+                   
+                   
                     <NavButton color="gray" dotColor="rgb(254, 201, 15)" icon={<RiNotification3Line className="dark:text-white" />} title="Notification" customFunc={() => handleClick('notification')} /> {/* White icons in dark mode */}
                     <TooltipComponent content="Profile" position="BottomCenter">
                         <div

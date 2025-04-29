@@ -110,6 +110,14 @@ class UserLoginView(APIView):
                             tracker.completion_percentage = previous_day_completion_percentage
                             tracker.save()
 
+                 # --- Habit Streak Calculation ---
+                if previous_day_completion_percentage is not None and previous_day_completion_percentage >= 80:
+                    user.habit_streak += 1
+                else:
+                    user.habit_streak = 0
+                user.save()
+                # --- End of Habit Streak Calculation ---
+
                 # 3. Create HabitTracker entries for today (using get_or_create to avoid duplicates)
                 user_habits = HabitList.objects.filter(user=user)
                 for habit in user_habits:
@@ -510,7 +518,7 @@ class TaskCompletionRateView(APIView):
             todo_count = TaskCard.objects.filter(
                 user=user,
                 due_date=date,
-                status__in=['pending', 'in_progress', 'backlog'] # Adjust status values as needed
+                status__in=['to_do'] # Adjust status values as needed
             ).count()
             weekly_completion_data.append({
                 'dueDate': date.isoformat(),
@@ -527,17 +535,29 @@ class UpcomingEventsView(APIView):
 
     def get(self, request):
         user = request.user
-        now = timezone.now()
+        now = timezone.now() # Get the current date and time (with timezone)
+
+        # To get the end of the current month (exclusive), we go to the start of the next month.
+        if now.month == 12:
+            next_month_start = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            next_month_start = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
         upcoming_events = Event.objects.filter(
             user=user,
-            start_time__gte=now  # Only show events from now onwards (including time)
+            start_time__gte=now,          # Filter for events starting from the current date and time onwards
+            start_time__lt=next_month_start # Filter for events starting before the beginning of the next month
         ).order_by('start_time')
+
         data = [
             {
+                'id': event.id,
                 'title': event.subject,
-                'date': event.start_time.date().isoformat(),
-                'time': event.start_time.strftime('%H:%M'),
+                'location': event.location,
+                'start_time': event.start_time.isoformat(), # Send full ISO 8601 string
+                'end_time': event.end_time.isoformat(),     # Send full ISO 8601 string
                 'description': event.description,
+                'category_color': event.category_color,
             }
             for event in upcoming_events
         ]

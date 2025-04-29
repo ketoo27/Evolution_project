@@ -12,6 +12,9 @@ class CustomUser(AbstractUser):
     country = models.CharField(max_length=100, blank=True, verbose_name='Country')
     bio = models.TextField(blank=True, verbose_name='Bio')
     profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True) # <---- MUST BE ImageField
+     # New field for habit streak
+    habit_streak = models.IntegerField(default=0, verbose_name='Habit Streak', help_text='Current consecutive days of habit completion.')
+
 
     def __str__(self):
         return self.username # Or self.email, or self.name, depending on what you want to identify users by

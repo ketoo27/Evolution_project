@@ -36,7 +36,7 @@ const TaskManagementPage = () => {
 
     // --- New state variables for event relation ---
     const [relatedEvent, setRelatedEvent] = useState(null);
-    const [eventsList, setEventsList] = useState();
+    const [eventsList, setEventsList] = useState([]); // Initialize as empty array
     // --- End of new state variables ---
 
     // Updated choices to match user's provided options
@@ -122,7 +122,7 @@ const TaskManagementPage = () => {
         }
     };
 
-    // --- Function to fetch events ---
+    // --- Function to fetch events and filter ---
     const fetchEvents = async () => {
         try {
             if (!authToken) {
@@ -140,7 +140,20 @@ const TaskManagementPage = () => {
                 return;
             }
             const data = await response.json();
-            setEventsList(data);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+            // Assuming your event data has a field like 'start_date' or similar
+            const filteredEvents = data.filter(event => {
+                if (event.start_time) {
+                    const eventDate = new Date(event.start_time);
+                    eventDate.setHours(0, 0, 0, 0);
+                    return eventDate >= today;
+                }
+                return false; // If no start_date, don't include
+            });
+
+            setEventsList(filteredEvents);
         } catch (error) {
             console.error("Could not fetch events:", error);
         }
@@ -368,12 +381,12 @@ const TaskManagementPage = () => {
                                                     value={relatedEvent || (eventsList && eventsList.length > 0 ? eventsList[0].id : '')} // Set default to the first event if available
                                                     onChange={(e) => setRelatedEvent(e.target.value ? parseInt(e.target.value) : null)} // Handle selection
                                                 >
-                                                    {eventsList && eventsList.map(event => (
+                                                    {eventsList.map(event => (
                                                         <option key={event.id} value={event.id}>
                                                             {event.subject}
                                                         </option>
                                                     ))}
-                                                    {!eventsList || eventsList.length === 0 ? <option disabled>No events available</option> : null}
+                                                    {eventsList.length === 0 ? <option disabled>No events available</option> : null}
                                                 </select>
                                             </div>
 
