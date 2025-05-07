@@ -1,0 +1,65 @@
+[33mcommit 199f10b76fac8b5e7da883d5ec3c0dea85fb3167[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Wed May 7 18:19:07 2025 +0530
+
+    Refactored profile update UI, and password
+
+[33mcommit 9bf202c157ec2149f8516de1081ff9d210d212f9[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Wed May 7 18:09:12 2025 +0530
+
+    update profile section
+
+[33mcommit 5b8672c9bcf845c7d1b8e85a17a6d8ad29a0db35[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Tue Apr 29 21:44:42 2025 +0530
+
+    final touch commit
+
+[33mcommit 8a8595e7486e816731878f86d75937303d4c5fe8[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Sat Apr 5 15:41:28 2025 +0530
+
+    iml dashborad
+
+[33mcommit 0f5f9d96dc806477114ebbbaeb55a85c59be1b6b[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Sat Apr 5 13:43:07 2025 +0530
+
+    habtit and task visualization
+
+[33mcommit d69c142be9dbe97fbd2148e705f3aeb41e3c9f82[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Sat Apr 5 11:26:40 2025 +0530
+
+    integration of habit and task event completed
+
+[33mcommit e533311e063473cc46723b5c1a0ff55381961039[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Wed Mar 26 23:04:19 2025 +0530
+
+    Implement working integration
+
+[33mcommit b81208440531963e8ec5c04747f0833cd609c453[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Wed Mar 26 21:18:47 2025 +0530
+
+    Integration of habit,task,schedule
+
+[33mcommit f1cfde590e6bc5d94d65b39c0112c9f6cbb1d2bf[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Mon Mar 10 09:49:09 2025 +0530
+
+    minor changes in fe and be
+
+[33mcommit 48264e031fd29aed105b1866d32dc60325faf80c[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Wed Mar 5 22:43:30 2025 +0530
+
+    completed calender
+
+[33mcommit ba6e61d7d573300779410175a337d9eb8b7d5b88[m
+Author: krishna tikule <krishnatikule1@gmail.com>
+Date:   Mon Mar 3 18:31:01 2025 +0530
+
+    Initial commit: Uploading entire project (frontend and backend)
