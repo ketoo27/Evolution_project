@@ -10,12 +10,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
-from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer, EventSerializer, JournalEntrySerializer, BadgeSerializer, UserBadgeSerializer # <---- Import serializers from serializers.py
+from .serializers import UserRegistrationSerializer, TaskCardSerializer, HabitListSerializer, HabitTrackerSerializer, EventSerializer, JournalEntrySerializer, BadgeSerializer, UserBadgeSerializer,UserProfileUpdateSerializer # <---- Import serializers from serializers.py
 from .models import TaskCard, HabitList, HabitTracker, Event, JournalEntry, Badge, UserBadge
 from django.utils import timezone
 from .badges_logic import check_and_award_badges
 from django.db.models import Count, Case, When, DateField
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser # Make sure these are imported
 
 
 
@@ -168,34 +169,33 @@ class UserLoginView(APIView):
             )
 
 
-class UserProfileView(APIView):
+# --- Replace your existing UserProfileView with this ---
+class UserProfileView(generics.RetrieveUpdateAPIView):
     """
-    API view to get the profile of the logged-in user.
-    Requires authentication (TokenAuthentication).
+    API view to get and update the profile of the logged-in user.
+    Requires authentication.
+    Supports partial updates (PATCH).
     """
+    serializer_class = UserProfileUpdateSerializer # Use the serializer for updates
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # Add parsers for handling file uploads (like profile image)
 
-    def get(self, request):
+    parser_classes = (MultiPartParser, FormParser, JSONParser) # <--- Add JSONParser here
+
+    def get_object(self):
         """
-        Handles GET requests to return user profile data.
+        Returns the currently authenticated user's profile object.
+        This ensures a user can only get/update their own profile.
         """
-        user = request.user
+        return self.request.user
 
-        profile_image_url = None
-        if user.profile_image:
-            profile_image_url = request.build_absolute_uri(user.profile_image.url)
+    # The RetrieveUpdateAPIView automatically handles:
+    # GET requests using get_object() and serializing with serializer_class
+    # PUT/PATCH requests using get_object(), validating data with serializer_class.is_valid(),
+    # and calling serializer.save() which triggers the serializer's update() method.
 
-        user_data = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'name': user.name,
-            'bio': user.bio,
-            'country': user.country,
-            'profile_image': profile_image_url,
-        }
-        return Response(user_data, status=status.HTTP_200_OK)
+# --- End of replacement code for UserProfileView ---
 
 
 class TaskCardViewSet(viewsets.ModelViewSet):

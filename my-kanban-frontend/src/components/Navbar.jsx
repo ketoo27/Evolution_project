@@ -123,7 +123,7 @@ function Navbar({ toggleSidebar, isSidebarOpen }) {
                 <div className="flex items-center space-x-4">
                    
                    
-                    <NavButton color="gray" dotColor="rgb(254, 201, 15)" icon={<RiNotification3Line className="dark:text-white" />} title="Notification" customFunc={() => handleClick('notification')} /> {/* White icons in dark mode */}
+                    
                     <TooltipComponent content="Profile" position="BottomCenter">
                         <div
                             className="flex items-center gap-2 cursor-pointer p-1 hover:bg-light-gray rounded-lg relative dark:hover:bg-gray-700" // Dark mode hover for profile div
@@ -134,7 +134,7 @@ function Navbar({ toggleSidebar, isSidebarOpen }) {
                         >
                             <img
                                 className="rounded-full w-8 h-8"
-                                src={profileImg || "https://i.pravatar.cc/300"} // Use profileImg state here, with default avatar as fallback
+                                src={profileImg} // Use profileImg state here, with default avatar as fallback
                                 alt="user-profile"
                             />
                             <p>

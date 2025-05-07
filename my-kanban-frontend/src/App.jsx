@@ -9,8 +9,10 @@ import { AuthProvider } from "./context/Authcontext"; // Import AuthProvider  <-
 import TaskManagementPage from './TaskManagementPage'; 
 import HabitPage from './HabitPage';
 import PrivateRoute from './components/PrivateRoute';
+import SettingsPage from './components/settings';
 import Scheduler from './Scheduler';
 import JournalPage from './JournalPage';
+
 
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
                     <Route path="/habits" element={<PrivateRoute><HabitPage /></PrivateRoute>} /> {/* <---- Task Management Route */}
                     <Route path="/schedule" element={<PrivateRoute><Scheduler /></PrivateRoute>} />
                     <Route path="/journal" element={<PrivateRoute><JournalPage /></PrivateRoute>} />
+                    <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

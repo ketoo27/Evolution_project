@@ -1,147 +1,9 @@
 /* src/components/JournalEditor.css */
 
-/* Main container for the editor and button */
-.journal-editor-container {
-    display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Stack editor and button vertically */
-}
-
-/* Style the ReactQuill editor component itself */
-.react-quill-editor {
-    height: 500px; /* Increased editor height */
-    margin-bottom: 15px; /* Add some space below the editor */
-}
-
-/* Style the Quill editor container (the area Quill creates) */
-.react-quill-editor .ql-container {
-    border: 1px solid #d0d0d0; /* Light border around editor */
-    background-color: #f8f8f8; /* Light gray background for editor content area */
-    font-size: 16px; /* Example: Adjust font size inside editor */
-}
-
-/* Style the Quill editor content (where you type) */
-.react-quill-editor .ql-editor {
-    color: #333; /* Darker text color for better visibility on light gray */
-    height: 500px; /* Inner editor content height (adjust if needed) */
-    padding: 15px;
-    overflow-y: auto; /* Enable vertical scrolling if content overflows */
-}
-
-/* Style the Quill toolbar */
-.react-quill-editor .ql-toolbar.ql-snow {
-    background-color: #f0f0f0; /* Light gray toolbar background */
-    border: 1px solid #d0d0d0; /* Light border for toolbar */
-    border-bottom: none; /* Remove bottom border to visually connect with editor */
-    padding: 10px; /* Increase toolbar padding for larger feel */
-}
-
-/* Style Quill toolbar buttons and icons (optional - adjust as needed) */
-.react-quill-editor .ql-toolbar.ql-snow button,
-.react-quill-editor .ql-toolbar.ql-snow .ql-picker-label,
-.react-quill-editor .ql-toolbar.ql-snow .ql-picker-item {
-    font-size: 14px; /* Example: Larger font size for toolbar elements */
-    height: 28px;    /* Example: Button height */
-    margin-right: 8px;
-}
-
-
-/* Style the Save Journal button (moved out of inline styles) */
-.save-journal-button {
-    background-color: #007bff; /* Blue button color */
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease; /* Smooth hover effect */
-    align-self: flex-start; /* Align button to the start of the container */
-}
-
-.save-journal-button {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    align-self: flex-start;
-}
-.save-journal-button:hover {
-    background-color: #0056b3;
-}
-
-/* Style the header area to contain date and title */
-.journal-editor-header {
-    display: flex;                 /* Use flexbox for header */
-    justify-content: space-between; /* Date on left, title on right */
-    align-items: baseline;        /* Align items to the baseline */
-    margin-bottom: 10px;          /* Space between header and editor */
-}
-
-
-/* Container for the title label and input (for right alignment) */
-.journal-title-input-container {
-    display: flex;
-    align-items: baseline;        /* Align label and input text baseline */
-}
-
-/* Style for the title label */
-.journal-title-label {
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 20px;
-    color: #d5cbcb;                   /* **Black text color for label** */
-}
-
-/* Style for the title input field */
-.journal-title-input {
-    flex-grow: 1;               /* Input takes remaining width */
-    padding: 8px 10px;
-    border: 1px solid #7c6f6f;
-    border-radius: 4px;
-    font-size: 20px;
-    color: #333;                   /* **Black text color for input** */
-    text-align: right;          /* **Right-align the text inside input** */
-    width: auto;       
-    height: 40px;          /* Let width be determined by content & flex-grow */
-    min-width: 300px;             /* Minimum width for the input */
-}
-
-.journal-title-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-.journal-buttons-container {
-    display: flex;              /* Arrange buttons horizontally */
-    justify-content: flex-start; /* Align buttons to the start (left) */
-    gap: 15px;                  /* Space between buttons */
-}
-
-/* Style for the "View Journals" button */
-.view-journals-button {
-    background-color: #6c757d; /* Gray button color */
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.view-journals-button:hover {
-    background-color: #545b62; /* Darker gray on hover */
-}
-
-
-/* --- Journal Browser Styles --- */
-
-.journal-browser-overlay {
-    position: fixed;             /* Overlay over the entire viewport */
+/* --- Common Modal Styles --- */
+/* These styles can be shared by the Journal Browser and the Journal Viewer popups */
+.modal-overlay {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -150,72 +12,247 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;               /* Ensure overlay is on top */
+    /* z-index is handled by Tailwind z-50 in JSX */
+}
+
+.modal-container {
+    /* Background, padding, border-radius, box-shadow, width, max-width,
+       max-height, overflow-y, and position are handled by Tailwind in JSX */
+    /* background-color: white; */
+    /* padding: 20px; */
+    /* border-radius: 8px; */
+    /* width: 90%; */
+    /* max-width: 600px; */
+    /* max-height: 80%; */
+    /* overflow-y: auto; */
+    /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); */
+    /* position: relative; */
+}
+
+
+/* --- Journal Browser Specific Styles --- */
+/* Inherit base modal styles and add/override if needed */
+.journal-browser-overlay {
+    /* This class is now primarily used in JSX for styling */
 }
 
 .journal-browser {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;                   /* Adjust width as needed */
-    max-width: 600px;            /* Maximum width of the browser */
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    /* This class is now primarily used in JSX for styling */
 }
 
-.journal-browser-title {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #333;
-}
-
+/* Styles for the list items in the browser */
 .journal-list {
     list-style: none;
     padding: 0;
-    margin-bottom: 20px;
-    max-height: 300px;          /* Limit height for scrolling */
-    overflow-y: auto;           /* Enable vertical scroll for long lists */
+    /* margin-bottom is handled by Tailwind */
+    max-height: 300px; /* Keep a max-height for scrollable list */
+    overflow-y: auto;
 }
 
 .journal-list-item {
-    padding: 10px 15px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    display: flex;               /* Use flexbox for list items */
-    justify-content: space-between; /* Title and date on opposite sides */
-    align-items: center;
+    /* Padding, border-bottom, cursor, display, justify-content, align-items, hover bg
+       are handled by Tailwind in JSX.
+       Keep the transition for smoother hover effect.
+    */
     transition: background-color 0.2s ease;
 }
 
 .journal-list-item:last-child {
-    border-bottom: none;         /* Remove border from last item */
+    border-bottom: none; /* Remove border from last item */
 }
 
-.journal-list-item:hover {
-    background-color: #f0f0f0; /* Light gray hover background */
+/* Styles for title and date within list items (font, color handled by Tailwind) */
+.journal-item-title {
+    /* font-weight, color handled by Tailwind */
+    margin-right: 10px; /* Space between title and date */
+    /* flex-grow: 1; */ /* Allow title to take space */
 }
 
-.journal-title {
-    font-weight: bold;
-    color: #333;
+.journal-item-date {
+    /* color, font-size handled by Tailwind */
+    flex-shrink: 0; /* Prevent date from shrinking */
 }
 
-.journal-date {
-    color: #777;
-    font-size: 0.9em;
-}
-
-
+/* Close browser button (absolute positioning handled in JSX) */
 .close-browser-button {
-    background-color: #dc3545; /* Reddish close button */
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+     /* Styles like background, color, padding, border, etc. are handled by Tailwind in JSX */
+     /* position, top, right are handled by Tailwind absolute, top-3, right-3 in JSX */
+    font-size: 1.8em; /* Keep font size */
+    font-weight: bold; /* Keep bold */
+    line-height: 1; /* Keep line height for vertical alignment */
+    /* color and hover color handled by Tailwind text-gray-600/900, dark:text-gray-300/100 */
+    transition: color 0.2s ease; /* Keep color transition */
 }
 
-.close-browser-button:hover {
-    background-color: #c82333; /* Darker red on hover */
+
+/* --- Journal Viewing Popup Specific Styles --- */
+/* Inherit base modal styles and add/override if needed */
+.journal-view-overlay {
+    /* This class is now primarily used in JSX for styling */
 }
+
+.journal-view-popup {
+    /* This class is now primarily used in JSX for styling */
+    max-width: 700px; /* Allow viewer to be slightly wider if desired */
+}
+
+.journal-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top */
+    /* margin-bottom, padding-bottom, border-bottom handled by Tailwind */
+}
+
+.journal-view-title {
+    font-size: 1.5em; /* Larger title */
+    font-weight: bold;
+    /* color handled by Tailwind */
+    margin-right: 20px; /* Space between title and close button */
+     word-break: break-word; /* Prevent long titles from overflowing */
+}
+
+.journal-view-date {
+    font-size: 0.9em;
+    /* color handled by Tailwind */
+    white-space: nowrap; /* Prevent date from wrapping */
+    flex-shrink: 0; /* Prevent date from shrinking */
+}
+
+/* Close viewer popup button (absolute positioning handled in JSX) */
+.close-view-popup-button {
+    /* Styles like background, color, padding, border, etc. are handled by Tailwind in JSX */
+    /* position, top, right are handled by Tailwind absolute, top-3, right-3 in JSX */
+    font-size: 1.8em; /* Keep font size */
+    font-weight: bold; /* Keep bold */
+    line-height: 1; /* Keep line height */
+    /* color and hover color handled by Tailwind text-gray-600/900, dark:text-gray-300/100 */
+    transition: color 0.2s ease; /* Keep color transition */
+}
+
+.journal-view-content-container {
+     /* Optional padding or margins if needed around the viewer content */
+     padding-top: 10px;
+}
+
+/* --- ReactQuill Viewer Styles (in the popup) --- */
+/* Specific styles for the read-only ReactQuill instance */
+.react-quill-viewer {
+    /* Remove default Quill styles that aren't needed for a viewer */
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    /* background-color handled by parent (.journal-view-popup) */
+}
+
+.react-quill-viewer .ql-container {
+    border: none !important; /* Force remove border */
+    background-color: transparent !important; /* No background */
+    font-size: 16px; /* Keep font size consistent */
+    color: inherit !important; /* Inherit text color from parent */
+    /* height, max-height, overflow handled by parent container */
+}
+
+.react-quill-viewer .ql-editor {
+    padding: 0 !important; /* Remove editor padding */
+    color: inherit !important; /* Inherit text color */
+    overflow-y: visible !important; /* Allow modal container to handle scrolling */
+    height: auto !important; /* Content determines height */
+    min-height: auto !important;
+
+    /* Optional: Prevent text selection if you want a strict read-only feel */
+    /* user-select: none; */
+    /* -webkit-user-select: none; */
+}
+
+/* --- Main Journal Editor Specific Styles --- */
+.journal-editor-container {
+    display: flex;
+    flex-direction: column;
+    /* Background, padding, rounded, shadow handled by Tailwind */
+}
+
+/* Style the ReactQuill editor component itself */
+.react-quill-editor {
+    height: 500px; /* Keep editor height */
+    /* margin-bottom handled by Tailwind */
+    display: flex; /* Use flex for toolbar and container */
+    flex-direction: column; /* Stack toolbar above container */
+}
+
+/* Style the Quill container (the area Quill creates below toolbar) */
+.react-quill-editor .ql-container {
+    /* border, background-color handled by Tailwind */
+    /* border: 1px solid #d0d0d0; */
+    /* background-color: #f8f8f8; */
+    font-size: 16px;
+    flex-grow: 1; /* Allow container to fill remaining height */
+    display: flex; /* Use flex for ql-editor */
+    flex-direction: column;
+}
+
+/* Style the Quill editor content (where you type) */
+.react-quill-editor .ql-editor {
+    /* color handled by Tailwind */
+    /* color: #333; */
+    height: 100%; /* Fill the container height */
+    padding: 15px; /* Keep padding */
+    overflow-y: auto; /* Keep scrolling */
+    flex-grow: 1; /* Allow editor area to fill container */
+}
+
+/* Style the Quill toolbar */
+.react-quill-editor .ql-toolbar.ql-snow {
+    /* background-color, border, padding handled by Tailwind */
+    /* background-color: #f0f0f0; */
+    /* border: 1px solid #d0d0d0; */
+    border-bottom: none; /* Keep no border bottom */
+    /* padding: 10px; */
+}
+
+/* Style for the main editor when it's in read-only mode (e.g., load error) */
+.react-quill-editor.read-only .ql-container {
+    /* background-color handled by Tailwind dark:bg-gray-700 */
+    cursor: not-allowed; /* Indicate not editable */
+}
+.react-quill-editor.read-only .ql-editor {
+    /* background-color handled by Tailwind dark:bg-gray-700 */
+    cursor: not-allowed; /* Indicate not editable */
+    color: #555; /* Slightly faded text color */
+     /* color handled by Tailwind dark:text-gray-400 */
+}
+
+
+/* Journal Title Input Styles */
+.journal-title-input-container {
+    display: flex;
+    align-items: baseline;
+     /* margin-bottom handled by Tailwind */
+}
+
+.journal-title-label {
+     /* font-weight, size, color, margin-right handled by Tailwind */
+     /* font-weight: bold; */
+     /* margin-right: 10px; */
+     /* font-size: 20px; */
+     /* color: #d5cbcb; */
+}
+
+.journal-title-input {
+    flex-grow: 1;
+    /* padding, border, border-radius, font-size, color, height, width handled by Tailwind */
+    text-align: left; /* Keep text aligned left as per recent JSX */
+    min-width: 150px; /* Ensure minimum width */
+    /* focus styles handled by Tailwind */
+}
+
+
+/* Journal Buttons Container */
+.journal-buttons-container {
+    /* display, justify-content, gap, margin-top handled by Tailwind */
+}
+
+/* Save and View button styles are handled by Tailwind in JSX */
+/* .save-journal-button { ... } */
+/* .save-journal-button:hover { ... } */
+/* .view-journals-button { ... } */
+/* .view-journals-button:hover { ... } */

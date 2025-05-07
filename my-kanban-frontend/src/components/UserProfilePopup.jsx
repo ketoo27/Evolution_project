@@ -11,7 +11,7 @@ const UserProfilePopup = ({ userName, userEmail, name, bio, country, profileImg,
                     {/* Profile Picture Section */}
                     <div className="md:w-1/3 text-center mb-4 md:mb-0">
                         <img
-                            src={profileImg || "https://i.pravatar.cc/300"} //  <---- Use profileImg prop, with placeholder fallback
+                            src={profileImg} //  <---- Use profileImg prop, with placeholder fallback
                             alt="Profile Picture"
                             className="rounded-full h-24 w-24"
                         />
