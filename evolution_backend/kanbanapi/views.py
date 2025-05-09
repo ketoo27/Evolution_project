@@ -1,5 +1,6 @@
 # kanbanapi/views.py
 import datetime
+from datetime import date, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets, generics,permissions # Removed serializers import, added viewsets
@@ -17,6 +18,8 @@ from .badges_logic import check_and_award_badges
 from django.db.models import Count, Case, When, DateField
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser # Make sure these are imported
+from collections import defaultdict
+
 
 
 
@@ -448,13 +451,41 @@ class HabitStreakView(APIView):
 
     def get(self, request):
         user = request.user
-        habit_trackers = HabitTracker.objects.filter(habit__user=user).order_by('-tracking_date')
+        today = date.today()
+
+        # Fetch past habit tracker entries (excluding today), most recent first
+        trackers = HabitTracker.objects.filter(
+            habit__user=user,
+            tracking_date__lt=today
+        ).order_by('-tracking_date')
+
         streak = 0
-        for tracker in habit_trackers:
-            if tracker.completion_percentage > 80:
+        expected_date = today - timedelta(days=1)
+
+        seen_dates = set()
+
+        for tracker in trackers:
+            track_date = tracker.tracking_date
+            if track_date in seen_dates:
+                continue  # Skip duplicates (multiple habits per day)
+            seen_dates.add(track_date)
+
+            # If there's a gap between expected and this track_date, break the streak
+            if track_date != expected_date:
+                break
+
+            # Get all trackers for that date and calculate completion
+            day_trackers = HabitTracker.objects.filter(habit__user=user, tracking_date=track_date)
+            total = day_trackers.count()
+            completed = day_trackers.filter(is_completed=True).count()
+            percentage = (completed / total) * 100 if total else 0
+
+            if percentage >= 80:
                 streak += 1
+                expected_date -= timedelta(days=1)
             else:
-                break  # Streak broken
+                break  # streak broken due to low completion
+
         return Response({'habitStreak': streak})
     
 
