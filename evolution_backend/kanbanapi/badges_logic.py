@@ -34,59 +34,94 @@ def check_productive_badge(user):
 
 def check_streak_starter_badge(user):
     """
-    Checks if a user has earned the "Streak Starter" badge (80% habit completion for 3 days) and awards it if not already earned.
+    Checks if a user has earned the "Streak Starter" badge based on their habit_streak field
+    and awards it if not already earned.
+    Criteria: habit_streak is 3 or more.
     """
-    streak_starter_badge = Badge.objects.get(title="Streak Starter")
+    print(f"Checking 'Streak Starter' badge for user: {user.username}")
+
+    try:
+        # Attempt to get the 'Streak Starter' badge object from the database.
+        # This assumes you have a Badge object with the title "Streak Starter".
+        streak_starter_badge = Badge.objects.get(title="Streak Starter")
+        print(f"Found badge: {streak_starter_badge.title}")
+    except Badge.DoesNotExist:
+        # If the badge doesn't exist in the database, print an error and stop.
+        print("Error: 'Streak Starter' badge not found in the database. Please create it.")
+        return # Cannot award badge if it doesn't exist
+
+    # Check if the user already has this specific badge.
+    # We query the UserBadge model to see if an entry exists linking this user and this badge.
     if UserBadge.objects.filter(user=user, badge=streak_starter_badge).exists():
+        print(f"User {user.username} already has the 'Streak Starter' badge. Skipping check.")
+        # If they already have it, there's nothing more to do, so we exit the function.
         return
 
-    today = timezone.now().date()
-    for habit_list in HabitList.objects.filter(user=user): # Iterate through each habit
-        consecutive_days = 0
-        for day_offset in range(3): # Check past 3 days
-            check_date = today - timedelta(days=day_offset)
-            try:
-                habit_tracker = HabitTracker.objects.get(habit=habit_list, tracking_date=check_date)
-                if habit_tracker.completion_percentage >= 80:
-                    consecutive_days += 1
-                else:
-                    break # Streak broken
-            except HabitTracker.DoesNotExist:
-                break # No tracker entry for that day, streak broken
+    # Now, we check the user's 'habit_streak' field directly.
+    # This field is assumed to be updated elsewhere based on their daily habit completion.
+    print(f"User's current habit_streak: {user.habit_streak}")
 
-        if consecutive_days == 3:
+    # The criteria for the "Streak Starter" badge is a habit streak of 3 or more.
+    if user.habit_streak >= 3:
+        print(f"User {user.username} meets the criteria (streak is {user.habit_streak}, needs >= 3).")
+        # If the user's streak meets the criteria and they don't already have the badge, award it.
+        try:
+            # Create a new entry in the UserBadge table to link the user and the badge.
             UserBadge.objects.create(user=user, badge=streak_starter_badge)
-            print(f"Awarded 'Streak Starter' badge to user: {user.username}")
-            return # Award badge only once even if multiple habits qualify
+            print(f"Successfully awarded 'Streak Starter' badge to user: {user.username}")
+        except Exception as e:
+            # Catch any potential errors during the badge creation process.
+            print(f"Error awarding 'Streak Starter' badge to {user.username}: {e}")
+    else:
+        # If the user's streak is less than 3, they don't meet the criteria yet.
+        print(f"User {user.username} does not meet the criteria (streak is {user.habit_streak}, needs >= 3).")
 
 
 def check_streak_beginner_badge(user):
     """
-    Checks if a user has earned the "Streak Beginner" badge (80% habit completion for 7 days) and awards it if not already earned.
+    Checks if a user has earned the "Streak Beginner" badge based on their habit_streak field
+    and awards it if not already earned.
+    Criteria: habit_streak is 7 or more.
     """
-    streak_beginner_badge = Badge.objects.get(title="Streak Beginner")
+    print(f"Checking 'Streak Beginner' badge for user: {user.username}")
+
+    try:
+        # Attempt to get the 'Streak Beginner' badge object from the database.
+        # This assumes you have a Badge object with the title "Streak Beginner".
+        streak_beginner_badge = Badge.objects.get(title="Streak Beginner")
+        print(f"Found badge: {streak_beginner_badge.title}")
+    except Badge.DoesNotExist:
+        # If the badge doesn't exist in the database, print an error and stop.
+        print("Error: 'Streak Beginner' badge not found in the database. Please create it.")
+        return # Cannot award badge if it doesn't exist
+
+    # Check if the user already has this specific badge.
+    # We query the UserBadge model to see if an entry exists linking this user and this badge.
     if UserBadge.objects.filter(user=user, badge=streak_beginner_badge).exists():
+        print(f"User {user.username} already has the 'Streak Beginner' badge. Skipping check.")
+        # If they already have it, there's nothing more to do, so we exit the function.
         return
 
-    today = timezone.now().date()
-    for habit_list in HabitList.objects.filter(user=user): # Iterate through each habit
-        consecutive_days = 0
-        for day_offset in range(7): # Check past 7 days
-            check_date = today - timedelta(days=day_offset)
-            try:
-                habit_tracker = HabitTracker.objects.get(habit=habit_list, tracking_date=check_date)
-                if habit_tracker.completion_percentage >= 80:
-                    consecutive_days += 1
-                else:
-                    break # Streak broken
-            except HabitTracker.DoesNotExist:
-                break # No tracker entry for that day, streak broken
+    # Now, we check the user's 'habit_streak' field directly.
+    # This field is assumed to be updated elsewhere based on their daily habit completion.
+    print(f"User's current habit_streak: {user.habit_streak}")
 
-        if consecutive_days == 7:
+    # The criteria for the "Streak Beginner" badge is a habit streak of 7 or more.
+    if user.habit_streak >= 7:
+        print(f"User {user.username} meets the criteria (streak >= 7).")
+        # Award the badge
+        try:
+            # Create a new entry in the UserBadge table to link the user and the badge.
             UserBadge.objects.create(user=user, badge=streak_beginner_badge)
-            print(f"Awarded 'Streak Beginner' badge to user: {user.username}")
-            return # Award badge only once even if multiple habits qualify
+            print(f"Successfully awarded 'Streak Beginner' badge to user: {user.username}")
+        except Exception as e:
+            # Catch any potential errors during the badge creation process.
+            print(f"Error awarding 'Streak Beginner' badge to {user.username}: {e}")
+    else:
+        # If the user's streak is less than 7, they don't meet the criteria yet.
+        print(f"User {user.username} does not meet the criteria (streak is {user.habit_streak}, needs >= 7).")
 
+        
 
 def check_scheduler_badge(user):
     """
